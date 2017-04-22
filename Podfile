@@ -1,5 +1,5 @@
 source 'https://github.com/CocoaPods/Specs.git'
-target 'HackCU3' do
-  pod 'GoogleMaps'
+target 'current-place-on-map' do
   pod 'GooglePlaces'
+  pod 'GoogleMaps'
 end
