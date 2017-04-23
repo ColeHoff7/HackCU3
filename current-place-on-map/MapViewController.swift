@@ -82,27 +82,31 @@ class MapViewController: UIViewController {
   let defaultLocation = CLLocation(latitude: -33.869405, longitude: 151.199)
 
 
-  @IBAction func sendAttack(_ sender: UIButton) {
-    
+@IBAction func sendAttack(_ sender: UIButton) {
+    //getCoordinates(latitude: (currentLocation?.coordinate.latitude)!, longitude: (currentLocation?.coordinate.longitude)!)
     var request = URLRequest(url: URL(string: "http://hackcu.ohioporcelain.com/server.php?a=set_battle&region_id=\(currentRegion)&user_id=\(userID)")!)
+    print("Attacking region: \(currentRegion)")
     print("http://hackcu.ohioporcelain.com/server.php?a=set_battle&region_id=\(currentRegion)&user_id=\(userID)")
     request.httpMethod = "GET"
     let session = URLSession.shared
     session.dataTask(with: request) {data, response, err in
-        print("attack sent")
-    }
+        print(data!)
+    }.resume()
   }
     
   override func viewDidLoad() {
     super.viewDidLoad()
     // Initialize the location manager.
     locationManager = CLLocationManager()
+        locationManager.delegate = self
     locationManager.desiredAccuracy = kCLLocationAccuracyBest
     locationManager.requestAlwaysAuthorization()
     locationManager.distanceFilter = 50
     locationManager.startUpdatingLocation()
     
+
     
+    self.view.layoutIfNeeded()
     // Create a map.
     let camera = GMSCameraPosition.camera(withLatitude: defaultLocation.coordinate.latitude,
                                           longitude: defaultLocation.coordinate.longitude,
@@ -121,6 +125,7 @@ class MapViewController: UIViewController {
   }
     
     func displayRegions(regions: [[String: Any]]) {
+        mapView.clear()
         for region in regions {
             let color = colors[(region["team_winning"] as! Int)-1]
             var points = [CLLocationDegrees](repeating: CLLocationDegrees(0.0), count: 8)
@@ -149,8 +154,9 @@ class MapViewController: UIViewController {
     }
     
     func getCoordinates(latitude: CLLocationDegrees, longitude: CLLocationDegrees){
-        
+        print("getting coords")
         var request = URLRequest(url: URL(string: "http://hackcu.ohioporcelain.com/server.php?a=get_regions&user_id=\(userID)&lat=\(latitude)&lon=\(longitude)")!)
+        print("http://hackcu.ohioporcelain.com/server.php?a=get_regions&user_id=\(userID)&lat=\(latitude)&lon=\(longitude)")
         request.httpMethod = "GET"
         let session = URLSession.shared
         session.dataTask(with: request) {data, response, err in
@@ -214,7 +220,8 @@ extension MapViewController: CLLocationManagerDelegate {
       mapView.isHidden = false
     case .notDetermined:
       print("Location status not determined.")
-    case .authorizedAlways: fallthrough
+    case .authorizedAlways:
+        print("always ok")
     case .authorizedWhenInUse:
       print("Location status is OK.")
     }
@@ -222,6 +229,7 @@ extension MapViewController: CLLocationManagerDelegate {
 
   // Handle location manager errors.
   func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+    print("Error: \(error)")
     locationManager.stopUpdatingLocation()
     print("Error: \(error)")
   }
