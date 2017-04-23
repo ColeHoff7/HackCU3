@@ -85,7 +85,8 @@ class MapViewController: UIViewController {
         let session = URLSession.shared
         session.dataTask(with: request) {data, response, err in
             print("Entered the completionHandler")
-            print(data)
+            let json = try? JSONSerialization.jsonObject(with: data!, options: [])
+            print(json!)
         }.resume()
         
     }
