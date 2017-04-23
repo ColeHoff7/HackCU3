@@ -19,14 +19,17 @@ import GooglePlaces
 
 class MapViewController: UIViewController {
 
+    @IBOutlet var button: UIButton!
     
-  @IBOutlet weak var button: UIButton!
+  
   @IBOutlet var mainView: UIView!
   var locationManager = CLLocationManager()
   var currentLocation: CLLocation?
   var mapView: GMSMapView!
   var zoomLevel: Float = 15.0
-  var colors:[UIColor] = [UIColor(red: 0.5, green: 0, blue: 0, alpha: 0.1), UIColor(red: 0.9, green: 0.76, blue: 0, alpha: 0.1)]
+    var currentRegion: Int = 0
+    var userID: Int = 2
+  var colors:[UIColor] = [UIColor(red: 0.5, green: 0, blue: 0, alpha: 0.2), UIColor(red: 0.9, green: 0.76, blue: 0, alpha: 0.2)]
 
     
 
@@ -35,6 +38,17 @@ class MapViewController: UIViewController {
   let defaultLocation = CLLocation(latitude: -33.869405, longitude: 151.199)
 
 
+  @IBAction func sendAttack(_ sender: UIButton) {
+    
+    var request = URLRequest(url: URL(string: "http://hackcu.ohioporcelain.com/server.php?a=set_battle&region_id=\(currentRegion)&user_id=\(userID)")!)
+    print("http://hackcu.ohioporcelain.com/server.php?a=set_battle&region_id=\(currentRegion)&user_id=\(userID)")
+    request.httpMethod = "GET"
+    let session = URLSession.shared
+    session.dataTask(with: request) {data, response, err in
+        print("attack sent")
+    }
+  }
+    
   override func viewDidLoad() {
     super.viewDidLoad()
     // Initialize the location manager.
@@ -43,8 +57,6 @@ class MapViewController: UIViewController {
     locationManager.requestAlwaysAuthorization()
     locationManager.distanceFilter = 50
     locationManager.startUpdatingLocation()
-    locationManager.delegate = self
-    //button.layer.zPosition = -1000
     
     
     // Create a map.
@@ -57,7 +69,9 @@ class MapViewController: UIViewController {
     mapView.isMyLocationEnabled = true
 
     // Add the map to the view, hide it until we've got a location update.
-    view.insertSubview(mapView, belowSubview: mainView)
+    self.view.insertSubview(mapView, at:0)
+    //let button1 = button //UIButton(frame: CGRect(x: 150, y: 560, width: 75, height: 40))
+    self.view.insertSubview(button, at:1)
     mapView.isHidden = true
     
   }
@@ -92,8 +106,7 @@ class MapViewController: UIViewController {
     
     func getCoordinates(latitude: CLLocationDegrees, longitude: CLLocationDegrees){
         
-        var request = URLRequest(url: URL(string: "http://hackcu.ohioporcelain.com/server.php?a=get_regions&user_id=1&lat=\(latitude)&lon=\(longitude)")!)
-        //print("http://hackcu.ohioporcelain.com/server.php?a=get_regions&user_id=1&lat=\(latitude)&lon=\(longitude)")
+        var request = URLRequest(url: URL(string: "http://hackcu.ohioporcelain.com/server.php?a=get_regions&user_id=\(userID)&lat=\(latitude)&lon=\(longitude)")!)
         request.httpMethod = "GET"
         let session = URLSession.shared
         session.dataTask(with: request) {data, response, err in
@@ -101,6 +114,8 @@ class MapViewController: UIViewController {
             let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String: Any]
             if let regions = json?["regions"] as? [[String: Any]] {
                 //print(regions)
+                self.currentRegion = (json?["region_id"] as? Int)!
+                print(self.currentRegion)
                 self.displayRegions(regions: regions)
             }
         }.resume()
@@ -115,7 +130,7 @@ extension MapViewController: CLLocationManagerDelegate {
   // Handle incoming location events.
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
     let location: CLLocation = locations.last!
-    //print("Location: \(location)")
+    print("Location: \(location)")
 
     let camera = GMSCameraPosition.camera(withLatitude: location.coordinate.latitude,
                                           longitude: location.coordinate.longitude,

@@ -22,12 +22,16 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Qxd-ZZ-eRg">
-                                <rect key="frame" x="150" y="563" width="75" height="40"/>
+                                <rect key="frame" x="150" y="563" width="100" height="60"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" title="Attack" backgroundImage="road_1-1.png">
+                                <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <state key="normal" title="Attack">
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="titleShadowColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 </state>
+                                <connections>
+                                    <action selector="sendAttack:" destination="BYZ-38-t0r" eventType="touchDown" id="g6z-2f-KTb"/>
+                                </connections>
                             </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -36,7 +40,7 @@
                         <barButtonItem key="rightBarButtonItem" title="Get Place" style="plain" id="PNt-wg-a1x"/>
                     </navigationItem>
                     <connections>
-                        <outlet property="button" destination="Qxd-ZZ-eRg" id="2Y5-Cb-7Kd"/>
+                        <outlet property="button" destination="Qxd-ZZ-eRg" id="Mee-o3-fCm"/>
                         <outlet property="mainView" destination="8bC-Xf-vdC" id="8kW-aJ-akI"/>
                     </connections>
                 </viewController>
@@ -45,7 +49,4 @@
             <point key="canvasLocation" x="1201" y="36"/>
         </scene>
     </scenes>
-    <resources>
-        <image name="road_1-1.png" width="1" height="1"/>
-    </resources>
 </document>
