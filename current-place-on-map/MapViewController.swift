@@ -122,6 +122,9 @@ class MapViewController: UIViewController {
     self.view.insertSubview(button, at:1)
     mapView.isHidden = true
     
+    var gameTimer: Timer!
+    gameTimer = Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(loopUpdate), userInfo: nil, repeats: true)
+    
   }
     
     func displayRegions(regions: [[String: Any]]) {
@@ -172,16 +175,49 @@ class MapViewController: UIViewController {
         
     }
     
+    // HTTP POST to update server based on button clicks
     func getRegionWinners() {
+//        var request = URLRequest(url: URL(string: "http://hackcu.ohioporcelain.com/server.php?a=get_battle&region_id=\(self.currentRegion)"))
+//        request.httpMethod = "POST"
+//        let session = URLSession.shared
+        
+        
+        let json = self.currentRegion
+        
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
+            
+            // create post request
+            let endpoint: String = "http://hackcu.ohioporcelain.com/server.php?a=get_battle&region_id=\(self.currentRegion)"
+            let session = URLSession.shared
+            let url = NSURL(string: endpoint)!
+            let request = NSMutableURLRequest(url: url as URL)
+            request.httpMethod = "POST"
+            
+            // insert json data to the request
+            request.httpBody = jsonData
+            
+            
+            let task = session.dataTask(with: request as URLRequest){ data,response,error in
+                if error != nil{
+                    print(error?.localizedDescription)
+                    return
+                }
+            }
+            task.resume()
+        } catch {
+            print("bad things happened")
+        }
         
     }
     
+    //Updates display based on updated coordinates from HTTP GET
     func updateUI() {
-        
+       displayRegions(getCoordinates(self.currentRegion.latitude, self.currentRegion.longitude))
     }
     
+    //Loops every 0.5 sec and updates the UI and server threads
     func loopUpdate() {
-        //figure out timed loop
         {self.getRegionWinners()} ~> {self.updateUI()}
     }
 
