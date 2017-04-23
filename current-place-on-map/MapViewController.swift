@@ -22,33 +22,12 @@ class MapViewController: UIViewController {
   var locationManager = CLLocationManager()
   var currentLocation: CLLocation?
   var mapView: GMSMapView!
-  var placesClient: GMSPlacesClient!
   var zoomLevel: Float = 15.0
 
-  // An array to hold the list of likely places.
-  var likelyPlaces: [GMSPlace] = []
-
-  // The currently selected place.
-  var selectedPlace: GMSPlace?
 
   // A default location to use when location permission is not granted.
   let defaultLocation = CLLocation(latitude: -33.869405, longitude: 151.199)
 
-  // Update the map once the user has made their selection.
-  @IBAction func unwindToMain(segue: UIStoryboardSegue) {
-    // Clear the map.
-    mapView.clear()
-
-    // Add a marker to the map.
-    if selectedPlace != nil {
-      let marker = GMSMarker(position: (self.selectedPlace?.coordinate)!)
-      marker.title = selectedPlace?.name
-      marker.snippet = selectedPlace?.formattedAddress
-      marker.map = mapView
-    }
-
-    listLikelyPlaces()
-  }
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -61,7 +40,7 @@ class MapViewController: UIViewController {
     locationManager.startUpdatingLocation()
     locationManager.delegate = self
 
-    placesClient = GMSPlacesClient.shared()
+
 
     // Create a map.
     let camera = GMSCameraPosition.camera(withLatitude: defaultLocation.coordinate.latitude,
@@ -75,40 +54,42 @@ class MapViewController: UIViewController {
     // Add the map to the view, hide it until we've got a location update.
     view.addSubview(mapView)
     mapView.isHidden = true
-
-    listLikelyPlaces()
+    
   }
-
-  // Populate the array with the list of likely places.
-  func listLikelyPlaces() {
-    // Clean up from previous sessions.
-    likelyPlaces.removeAll()
-
-    placesClient.currentPlace(callback: { (placeLikelihoods, error) -> Void in
-      if let error = error {
-        // TODO: Handle the error.
-        print("Current Place error: \(error.localizedDescription)")
-        return
-      }
-
-      // Get likely places and add to the list.
-      if let likelihoodList = placeLikelihoods {
-        for likelihood in likelihoodList.likelihoods {
-          let place = likelihood.place
-          self.likelyPlaces.append(place)
-        }
-      }
-    })
-  }
-
-  // Prepare the segue.
-  override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-    if segue.identifier == "segueToSelect" {
-      if let nextViewController = segue.destination as? PlacesViewController {
-        nextViewController.likelyPlaces = likelyPlaces
-      }
+    
+    func displayRegions() {
+        var points = [CLLocationDegrees](repeating: CLLocationDegrees(0.0), count: 8)
+        
+        let color = UIColor(red: 0.25, green: 0, blue: 0, alpha: 0.5)
+        drawPolygon(points: points, color: color)
     }
-  }
+    
+    func drawPolygon(points : [CLLocationDegrees], color : UIColor) {
+        let path = GMSMutablePath()
+        for i in (0..<8).filter({ $0 % 2 == 0 }) {
+            path.add(CLLocationCoordinate2D(latitude: points[i], longitude: points[i+1]))
+        }
+        let polygon = GMSPolygon(path: path)
+        polygon.fillColor = color
+        polygon.strokeColor = .black
+        polygon.strokeWidth = 2
+        polygon.map = mapView
+        
+    }
+    
+    func getCoordinates(latitude: CLLocationDegrees, longitude: CLLocationDegrees){
+        
+        var request = URLRequest(url: URL(string: "http://hackcu.ohioporcelain.com/server.php?a=get_regions&user_id=1&lat=\(latitude)&lon=\(longitude)")!)
+        //print("http://hackcu.ohioporcelain.com/server.php?a=get_regions&user_id=1&lat=\(latitude)&lon=\(longitude)")
+        request.httpMethod = "GET"
+        let session = URLSession.shared
+        session.dataTask(with: request) {data, response, err in
+            print("Entered the completionHandler")
+            print(data)
+        }.resume()
+        
+    }
+
 }
 
 // Delegates to handle events for the location manager.
@@ -117,7 +98,7 @@ extension MapViewController: CLLocationManagerDelegate {
   // Handle incoming location events.
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
     let location: CLLocation = locations.last!
-    print("Location: \(location)")
+    //print("Location: \(location)")
 
     let camera = GMSCameraPosition.camera(withLatitude: location.coordinate.latitude,
                                           longitude: location.coordinate.longitude,
@@ -129,8 +110,7 @@ extension MapViewController: CLLocationManagerDelegate {
     } else {
       mapView.animate(to: camera)
     }
-
-    listLikelyPlaces()
+    getCoordinates(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
   }
 
   // Handle authorization for the location manager.

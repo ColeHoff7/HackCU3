@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "E50C79B61E4CFDE9008ECCEB"
-               BuildableName = "HackCU.app"
-               BlueprintName = "HackCU"
-               ReferencedContainer = "container:HackCU.xcodeproj">
+               BuildableName = "current-place-on-map.app"
+               BlueprintName = "current-place-on-map"
+               ReferencedContainer = "container:current-place-on-map.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "E50C79B61E4CFDE9008ECCEB"
-            BuildableName = "HackCU.app"
-            BlueprintName = "HackCU"
-            ReferencedContainer = "container:HackCU.xcodeproj">
+            BuildableName = "current-place-on-map.app"
+            BlueprintName = "current-place-on-map"
+            ReferencedContainer = "container:current-place-on-map.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -56,9 +56,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "E50C79B61E4CFDE9008ECCEB"
-            BuildableName = "HackCU.app"
-            BlueprintName = "HackCU"
-            ReferencedContainer = "container:HackCU.xcodeproj">
+            BuildableName = "current-place-on-map.app"
+            BlueprintName = "current-place-on-map"
+            ReferencedContainer = "container:current-place-on-map.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -75,9 +75,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "E50C79B61E4CFDE9008ECCEB"
-            BuildableName = "HackCU.app"
-            BlueprintName = "HackCU"
-            ReferencedContainer = "container:HackCU.xcodeproj">
+            BuildableName = "current-place-on-map.app"
+            BlueprintName = "current-place-on-map"
+            ReferencedContainer = "container:current-place-on-map.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
