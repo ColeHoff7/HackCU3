@@ -17,6 +17,49 @@ import UIKit
 import GoogleMaps
 import GooglePlaces
 
+
+infix operator ~>   // serial queue operator
+/**
+ Executes the lefthand closure on a background thread and,
+ upon completion, the righthand closure on the main thread.
+ Passes the background closure's output to the main closure.
+ */
+func ~> <R> (
+    backgroundClosure:   @escaping () -> R,
+    mainClosure:         @escaping (_ result: R) -> ())
+{
+    serial_queue.async {
+        let result = backgroundClosure()
+        DispatchQueue.main.async(execute: {
+            mainClosure(result)
+        })
+    }
+}
+/** Serial dispatch queue used by the ~> operator. */
+private let serial_queue = DispatchQueue(label: "serial-worker")
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+infix operator ≠>   // concurrent queue operator
+/**
+ Executes the lefthand closure on a background thread and,
+ upon completion, the righthand closure on the main thread.
+ Passes the background closure's output to the main closure.
+ */
+func ≠> <R> (
+    backgroundClosure: @escaping () -> R,
+    mainClosure:       @escaping (_ result: R) -> ())
+{
+    concurrent_queue.async {
+        let result = backgroundClosure()
+        DispatchQueue.main.async(execute: {
+            mainClosure(result)
+        })
+    }
+}
+
+/** Concurrent dispatch queue used by the ≠> operator. */
+private let concurrent_queue = DispatchQueue(label: "concurrent-worker", attributes: .concurrent)
+
 class MapViewController: UIViewController {
 
     @IBOutlet var button: UIButton!
@@ -31,6 +74,7 @@ class MapViewController: UIViewController {
     var userID: Int = 2
   var colors:[UIColor] = [UIColor(red: 0.5, green: 0, blue: 0, alpha: 0.2), UIColor(red: 0.9, green: 0.76, blue: 0, alpha: 0.2)]
 
+    //Operator override for threading
     
 
     
@@ -121,6 +165,20 @@ class MapViewController: UIViewController {
         }.resume()
         
     }
+    
+    func getRegionWinners() {
+        
+    }
+    
+    func updateUI() {
+        
+    }
+    
+    func loopUpdate() {
+        //figure out timed loop
+        {self.getRegionWinners()} ~> {self.updateUI()}
+    }
+
 
 }
 
