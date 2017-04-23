@@ -19,19 +19,24 @@ import GooglePlaces
 
 class MapViewController: UIViewController {
 
+    
+  @IBOutlet weak var button: UIButton!
+  @IBOutlet var mainView: UIView!
   var locationManager = CLLocationManager()
   var currentLocation: CLLocation?
   var mapView: GMSMapView!
   var zoomLevel: Float = 15.0
+  var colors:[UIColor] = [UIColor(red: 0.5, green: 0, blue: 0, alpha: 0.1), UIColor(red: 0.9, green: 0.76, blue: 0, alpha: 0.1)]
 
+    
 
+    
   // A default location to use when location permission is not granted.
   let defaultLocation = CLLocation(latitude: -33.869405, longitude: 151.199)
 
 
   override func viewDidLoad() {
     super.viewDidLoad()
-
     // Initialize the location manager.
     locationManager = CLLocationManager()
     locationManager.desiredAccuracy = kCLLocationAccuracyBest
@@ -39,9 +44,9 @@ class MapViewController: UIViewController {
     locationManager.distanceFilter = 50
     locationManager.startUpdatingLocation()
     locationManager.delegate = self
-
-
-
+    //button.layer.zPosition = -1000
+    
+    
     // Create a map.
     let camera = GMSCameraPosition.camera(withLatitude: defaultLocation.coordinate.latitude,
                                           longitude: defaultLocation.coordinate.longitude,
@@ -52,16 +57,24 @@ class MapViewController: UIViewController {
     mapView.isMyLocationEnabled = true
 
     // Add the map to the view, hide it until we've got a location update.
-    view.addSubview(mapView)
+    view.insertSubview(mapView, belowSubview: mainView)
     mapView.isHidden = true
     
   }
     
-    func displayRegions() {
-        var points = [CLLocationDegrees](repeating: CLLocationDegrees(0.0), count: 8)
-        
-        let color = UIColor(red: 0.25, green: 0, blue: 0, alpha: 0.5)
-        drawPolygon(points: points, color: color)
+    func displayRegions(regions: [[String: Any]]) {
+        for region in regions {
+            let color = colors[(region["team_winning"] as! Int)-1]
+            var points = [CLLocationDegrees](repeating: CLLocationDegrees(0.0), count: 8)
+            let coordinates = region["coordinates"] as! [[String: Float]]
+            var i = 0
+            for coord in coordinates {
+                points[i] = CLLocationDegrees(coord["lat"]!)
+                points[i+1] = CLLocationDegrees(coord["lon"]!)
+                i += 2
+            }
+            drawPolygon(points: points, color: color)
+        }
     }
     
     func drawPolygon(points : [CLLocationDegrees], color : UIColor) {
@@ -84,9 +97,12 @@ class MapViewController: UIViewController {
         request.httpMethod = "GET"
         let session = URLSession.shared
         session.dataTask(with: request) {data, response, err in
-            print("Entered the completionHandler")
-            let json = try? JSONSerialization.jsonObject(with: data!, options: [])
-            print(json!)
+            //print("Entered the completionHandler")
+            let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String: Any]
+            if let regions = json?["regions"] as? [[String: Any]] {
+                //print(regions)
+                self.displayRegions(regions: regions)
+            }
         }.resume()
         
     }
