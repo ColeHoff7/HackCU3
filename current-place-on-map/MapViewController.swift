@@ -38,6 +38,7 @@ func ~> <R> (
 /** Serial dispatch queue used by the ~> operator. */
 private let serial_queue = DispatchQueue(label: "serial-worker")
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 infix operator ≠>   // concurrent queue operator
 /**
@@ -63,39 +64,67 @@ private let concurrent_queue = DispatchQueue(label: "concurrent-worker", attribu
 class MapViewController: UIViewController {
 
     @IBOutlet var button: UIButton!
-    
+    @IBOutlet var bar: UIProgressView!
   
   @IBOutlet var mainView: UIView!
   var locationManager = CLLocationManager()
   var currentLocation: CLLocation?
   var mapView: GMSMapView!
   var zoomLevel: Float = 15.0
-    var currentRegion: Int = 0
-    var userID: Int = 2
+    var currentRegion: Int?
+    var userID: Int = 1
   var colors:[UIColor] = [UIColor(red: 0.5, green: 0, blue: 0, alpha: 0.2), UIColor(red: 0.9, green: 0.76, blue: 0, alpha: 0.2)]
-
+    var lastKnownLoc: CLLocation?
+    var manyRegions: [[String: Any]]?
+    var lastLat: Double?
+    var lastLong: Double?
+    var fractionalProgress: Float?
+    var progressTintColor: UIColor = UIColor(red: 0.5, green: 0, blue: 0, alpha: 0.2)
+    var trackTintColor: UIColor = UIColor(red: 0.9, green: 0.76, blue: 0, alpha: 0.2)
+    var progressView: UIProgressView?
+    
+    
     //Operator override for threading
-    
-
-    
   // A default location to use when location permission is not granted.
   let defaultLocation = CLLocation(latitude: -33.869405, longitude: 151.199)
 
 
 @IBAction func sendAttack(_ sender: UIButton) {
+    if(currentRegion != nil) {
     //getCoordinates(latitude: (currentLocation?.coordinate.latitude)!, longitude: (currentLocation?.coordinate.longitude)!)
-    var request = URLRequest(url: URL(string: "http://hackcu.ohioporcelain.com/server.php?a=set_battle&region_id=\(currentRegion)&user_id=\(userID)")!)
-    print("Attacking region: \(currentRegion)")
-    print("http://hackcu.ohioporcelain.com/server.php?a=set_battle&region_id=\(currentRegion)&user_id=\(userID)")
+    var request = URLRequest(url: URL(string: "http://hackcu.ohioporcelain.com/server.php?a=set_battle&region_id=\(currentRegion!)&user_id=\(userID)")!)
+    print("Attacking region: \(currentRegion!)")
+    print("http://hackcu.ohioporcelain.com/server.php?a=set_battle&region_id=\(currentRegion!)&user_id=\(userID)")
     request.httpMethod = "GET"
     let session = URLSession.shared
     session.dataTask(with: request) {data, response, err in
         print(data!)
+        print("self.currentLocation: \(self.lastKnownLoc)")
     }.resume()
+    }
   }
+
+    
+    /*func setProgress(_ progress: Float, animated: Bool){
+       
+    }*/
+    
+    func getID() {
+        var request = URLRequest(url: URL(string: "http://hackcu.ohioporcelain.com/server.php?a=new_id")!)
+        request.httpMethod = "GET"
+        let session = URLSession.shared
+        session.dataTask(with: request) {data, response, err in
+            let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String: Any]
+            if let id = json?["id"] as? Int {
+                self.userID = id
+            }
+        }.resume()
+
+    }
     
   override func viewDidLoad() {
     super.viewDidLoad()
+    getID()
     // Initialize the location manager.
     locationManager = CLLocationManager()
         locationManager.delegate = self
@@ -122,8 +151,7 @@ class MapViewController: UIViewController {
     self.view.insertSubview(button, at:1)
     mapView.isHidden = true
     
-    var gameTimer: Timer!
-    gameTimer = Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(loopUpdate), userInfo: nil, repeats: true)
+    
     
   }
     
@@ -156,10 +184,10 @@ class MapViewController: UIViewController {
         
     }
     
-    func getCoordinates(latitude: CLLocationDegrees, longitude: CLLocationDegrees){
-        print("getting coords")
+    func getCoordinates(latitude: CLLocationDegrees, longitude: CLLocationDegrees) {
+        //print("getting coords")
         var request = URLRequest(url: URL(string: "http://hackcu.ohioporcelain.com/server.php?a=get_regions&user_id=\(userID)&lat=\(latitude)&lon=\(longitude)")!)
-        print("http://hackcu.ohioporcelain.com/server.php?a=get_regions&user_id=\(userID)&lat=\(latitude)&lon=\(longitude)")
+        //print("http://hackcu.ohioporcelain.com/server.php?a=get_regions&user_id=\(userID)&lat=\(latitude)&lon=\(longitude)")
         request.httpMethod = "GET"
         let session = URLSession.shared
         session.dataTask(with: request) {data, response, err in
@@ -167,58 +195,28 @@ class MapViewController: UIViewController {
             let json = try? JSONSerialization.jsonObject(with: data!, options: []) as! [String: Any]
             if let regions = json?["regions"] as? [[String: Any]] {
                 //print(regions)
+                self.manyRegions = regions
                 self.currentRegion = (json?["region_id"] as? Int)!
-                print(self.currentRegion)
+                //print("self.currentRegion: \(self.currentRegion)")
                 self.displayRegions(regions: regions)
             }
         }.resume()
+       
         
     }
+
     
-    // HTTP POST to update server based on button clicks
-    func getRegionWinners() {
-//        var request = URLRequest(url: URL(string: "http://hackcu.ohioporcelain.com/server.php?a=get_battle&region_id=\(self.currentRegion)"))
-//        request.httpMethod = "POST"
-//        let session = URLSession.shared
-        
-        
-        let json = self.currentRegion
-        
-        do {
-            let jsonData = try JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
-            
-            // create post request
-            let endpoint: String = "http://hackcu.ohioporcelain.com/server.php?a=get_battle&region_id=\(self.currentRegion)"
-            let session = URLSession.shared
-            let url = NSURL(string: endpoint)!
-            let request = NSMutableURLRequest(url: url as URL)
-            request.httpMethod = "POST"
-            
-            // insert json data to the request
-            request.httpBody = jsonData
-            
-            
-            let task = session.dataTask(with: request as URLRequest){ data,response,error in
-                if error != nil{
-                    print(error?.localizedDescription)
-                    return
-                }
-            }
-            task.resume()
-        } catch {
-            print("bad things happened")
+    //Updates display based on updated coordinates from HTTP GET
+    func updateUI() {
+        if(manyRegions != nil){
+            displayRegions(regions: manyRegions!)
         }
         
     }
     
-    //Updates display based on updated coordinates from HTTP GET
-    func updateUI() {
-       displayRegions(getCoordinates(self.currentRegion.latitude, self.currentRegion.longitude))
-    }
-    
     //Loops every 0.5 sec and updates the UI and server threads
     func loopUpdate() {
-        {self.getRegionWinners()} ~> {self.updateUI()}
+        {self.getCoordinates(latitude: self.lastLat!, longitude: self.lastLong!)} ~> {self.updateUI()}
     }
 
 
@@ -230,6 +228,9 @@ extension MapViewController: CLLocationManagerDelegate {
   // Handle incoming location events.
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
     let location: CLLocation = locations.last!
+    lastKnownLoc = location
+    lastLat = location.coordinate.latitude
+    lastLong = location.coordinate.longitude
     print("Location: \(location)")
 
     let camera = GMSCameraPosition.camera(withLatitude: location.coordinate.latitude,
@@ -243,6 +244,9 @@ extension MapViewController: CLLocationManagerDelegate {
       mapView.animate(to: camera)
     }
     getCoordinates(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
+    
+    var gameTimer: Timer!
+    gameTimer = Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(loopUpdate), userInfo: nil, repeats: true)
   }
 
   // Handle authorization for the location manager.

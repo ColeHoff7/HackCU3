@@ -33,6 +33,10 @@
                                     <action selector="sendAttack:" destination="BYZ-38-t0r" eventType="touchDown" id="g6z-2f-KTb"/>
                                 </connections>
                             </button>
+                            <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" fixedFrame="YES" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="XSE-z6-Qn5">
+                                <rect key="frame" x="87" y="28" width="200" height="2"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </progressView>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                     </view>
@@ -40,13 +44,14 @@
                         <barButtonItem key="rightBarButtonItem" title="Get Place" style="plain" id="PNt-wg-a1x"/>
                     </navigationItem>
                     <connections>
+                        <outlet property="bar" destination="XSE-z6-Qn5" id="DtK-Mc-qZL"/>
                         <outlet property="button" destination="Qxd-ZZ-eRg" id="Mee-o3-fCm"/>
                         <outlet property="mainView" destination="8bC-Xf-vdC" id="8kW-aJ-akI"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1201" y="36"/>
+            <point key="canvasLocation" x="1200.8" y="35.532233883058474"/>
         </scene>
     </scenes>
 </document>
